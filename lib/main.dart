@@ -3,13 +3,14 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 void main() async {
+
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-
   static const myTitle = 'Chat Demo';
 
   @override
@@ -25,4 +26,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
