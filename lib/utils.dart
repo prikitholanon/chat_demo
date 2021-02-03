@@ -15,9 +15,25 @@ void dtPrint(String title, String msg) {
   }
 }
 
+void dsPrint(String msg) {
+  if (!isProduction) {
+    String hms = '${DateTime.now().hour}:${DateTime.now().minute}:${DateTime.now().second}';
+    // String milli = '${DateTime.now().millisecond}${DateTime.now().microsecond}';
+    String milli = '${DateTime.now().millisecond}';
+    // debugPrint(StackTrace.current.toString());
+    var frame = StackTrace.current.toString().split("\n")[1];
+    var subStr = frame.substring(frame.indexOf(' ')).trim();
+    var caller = subStr.substring(0, subStr.indexOf(' '));
+
+    debugPrint('[$hms.$milli/$caller] $msg');
+  }
+}
+
 void testPrint() {
+  // debugPrint(StackTrace.current.toString());
   CustomTrace programInfo = CustomTrace(StackTrace.current);
-  debugPrint('${programInfo.fileName}, function: ${programInfo.functionName}, caller function: ${programInfo.callerFunctionName}, line: ${programInfo.lineNumber}, column(yay!): ${programInfo.columnNumber}');
+  debugPrint(
+      '${programInfo.fileName}, function: ${programInfo.functionName}, caller function: ${programInfo.callerFunctionName}, line: ${programInfo.lineNumber}, column(yay!): ${programInfo.columnNumber}');
 }
 
 // https://stackoverflow.com/questions/49966808/how-to-get-the-name-of-the-current-and-calling-function-in-dart

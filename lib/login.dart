@@ -51,7 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
     prefs = await SharedPreferences.getInstance();
 
     isLoggedIn = await googleSignIn.isSignedIn();
-    dtPrint('login', 'isLoggedIn => $isLoggedIn');
+    dsPrint('isLoggedIn => $isLoggedIn');
     if (isLoggedIn) {
       Navigator.push(
         context,
@@ -69,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> handleSignIn(SignInWith signInWith) async {
-    dtPrint('login', 'handleSignIn signInWith $signInWith');
+    dsPrint('handleSignIn signInWith $signInWith');
     prefs = await SharedPreferences.getInstance();
 
     this.setState(() {
@@ -78,8 +78,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
     firebaseAuth.authStateChanges().listen((User user) async {
       if (user != null) {
-        dtPrint('login', 'User is signed in!');
-        dtPrint('login', user.toString());
+        dsPrint('User is signed in!');
+        dsPrint(user.toString());
         final QuerySnapshot result = await FirebaseFirestore.instance
             .collection('users')
             .where('id', isEqualTo: user.uid)
@@ -118,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       } else {
-        dtPrint('login', 'User is currently signed out!');
+        dsPrint('User is currently signed out!');
         // Fluttertoast.showToast(msg: "Sign in fail");
         this.setState(() {
           isLoading = false;
@@ -128,9 +128,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
     firebaseAuth.idTokenChanges().listen((User user) {
       if (user == null) {
-        dtPrint('login', 'User token refreshed / user is null');
+        dsPrint('User token refreshed / user is null');
       } else {
-        dtPrint('login', 'User token refreshed');
+        dsPrint('User token refreshed');
       }
     });
 
@@ -158,12 +158,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     password: "SuperSecretPassword!");
           } on FirebaseAuthException catch (e) {
             if (e.code == 'weak-password') {
-              dtPrint('login', 'The password provided is too weak.');
+              dsPrint('The password provided is too weak.');
             } else if (e.code == 'email-already-in-use') {
-              dtPrint('login', 'The account already exists for that email.');
+              dsPrint('The account already exists for that email.');
             }
           } catch (e) {
-            dtPrint('login', e);
+            dsPrint(e);
           }
         }
         break;
@@ -174,8 +174,8 @@ class _LoginScreenState extends State<LoginScreen> {
             UserCredential userCredential =
                 await firebaseAuth.signInAnonymously();
           } on FirebaseAuthException catch (e) {
-            dtPrint('login', 'Failed with error code: ${e.code}');
-            dtPrint('login', e.message);
+            dsPrint('Failed with error code: ${e.code}');
+            dsPrint(e.message);
           }
         }
         break;
@@ -187,7 +187,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    dtPrint('login', 'build');
+    dsPrint('run');
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),

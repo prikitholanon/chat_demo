@@ -1,4 +1,5 @@
 import 'package:chat_demo/login.dart';
+import 'package:chat_demo/utils.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
@@ -15,6 +16,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    dsPrint('run');
     return MaterialApp(
       title: myTitle,
       theme: ThemeData(
