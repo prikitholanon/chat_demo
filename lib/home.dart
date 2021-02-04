@@ -1,11 +1,18 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chat_demo/const.dart';
+import 'package:chat_demo/main.dart';
 import 'package:chat_demo/utils.dart';
 import 'package:chat_demo/widget/loading.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class HomeScreen extends StatefulWidget {
   final String currentUserId;
@@ -22,6 +29,101 @@ class _HomeScreenState extends State<HomeScreen> {
     const Choice(title: 'Settings', icon: Icons.settings),
     const Choice(title: 'Log out', icon: Icons.exit_to_app),
   ];
+
+  final GoogleSignIn googleSignIn = GoogleSignIn();
+  // final FirebaseMessaging firebaseMessaging = FirebaseMessaging();
+  final FirebaseMessaging messaging = FirebaseMessaging.instance;
+  final FlutterLocalNotificationsPlugin localNotification =
+      FlutterLocalNotificationsPlugin();
+
+  @override
+  void initState() {
+    super.initState();
+    registerNotification();
+    configLocalNotification();
+  }
+
+  void registerNotification() {
+    // firebaseMessaging.requestNotificationPermissions();
+    messaging.requestPermission();
+
+    // firebaseMessaging.configure(onMessage: (Map<String, dynamic> message) {
+    //   print('onMessage: $message');
+    //   Platform.isAndroid
+    //       ? showNotification(message['notification'])
+    //       : showNotification(message['aps']['alert']);
+    //   return;
+    // }, onResume: (Map<String, dynamic> message) {
+    //   print('onResume: $message');
+    //   return;
+    // }, onLaunch: (Map<String, dynamic> message) {
+    //   print('onLaunch: $message');
+    //   return;
+    // });
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      dsPrint('Got a message whilst in the foreground!');
+      dsPrint('Message data: ${message.data}');
+      // Platform.isAndroid
+      //     ? showNotification(message['notification'])
+      //     : showNotification(message['aps']['alert']);
+      showNotification(message);
+      if (message.notification != null) {
+        dsPrint(
+            'Message also contained a notification: ${message.notification}');
+      }
+    });
+
+    messaging.getToken().then((token) {
+      dsPrint('token: $token');
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.currentUserId)
+          .update({'pushToken': token});
+    }).catchError((err) {
+      Fluttertoast.showToast(msg: err.message.toString());
+    });
+  }
+
+  void showNotification(message) async {
+    var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
+      Platform.isAndroid
+          ? 'com.dfa.flutterchatdemo'
+          : 'com.duytq.flutterchatdemo',
+      'Flutter chat demo',
+      'your channel description',
+      playSound: true,
+      enableVibration: true,
+      importance: Importance.max,
+      priority: Priority.high,
+      icon: "mipmap/launcher_icon",
+    );
+    var iOSPlatformChannelSpecifics = new IOSNotificationDetails();
+    var platformChannelSpecifics = new NotificationDetails(
+        android: androidPlatformChannelSpecifics,
+        iOS: iOSPlatformChannelSpecifics);
+
+    dsPrint(message);
+//    print(message['body'].toString());
+//    print(json.encode(message));
+
+    await localNotification.show(0, message['title'].toString(),
+        message['body'].toString(), platformChannelSpecifics,
+        payload: json.encode(message));
+
+//    await flutterLocalNotificationsPlugin.show(
+//        0, 'plain title', 'plain body', platformChannelSpecifics,
+//        payload: 'item x');
+  }
+
+  void configLocalNotification() {
+    var initializationSettingsAndroid =
+        new AndroidInitializationSettings('app_icon');
+    var initializationSettingsIOS = new IOSInitializationSettings();
+    var initializationSettings = new InitializationSettings(
+        android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
+    localNotification.initialize(initializationSettings);
+  }
 
   Future<bool> onBackPress() {
     dsPrint('onBackPress');
@@ -119,9 +221,31 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<Null> handleSignOut() async {
+    this.setState(() {
+      isLoading = true;
+    });
+
+    // var u = googleSignIn.currentUser == null?'User is null':googleSignIn.currentUser.id;
+    // dsPrint('$u');
+    await FirebaseAuth.instance.signOut();
+    // await googleSignIn.disconnect();
+    // await googleSignIn.signOut();
+    // u = googleSignIn.currentUser == null?'User is null':googleSignIn.currentUser.id;
+    // dsPrint('$u');
+
+    this.setState(() {
+      isLoading = false;
+    });
+
+    Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => MyApp()),
+        (Route<dynamic> route) => false);
+  }
+
   void onItemMenuPress(Choice choice) {
     if (choice.title == 'Log out') {
-      // handleSignOut();
+      handleSignOut();
     } else {
       // Navigator.push(
       //   context,

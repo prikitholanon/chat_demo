@@ -34,6 +34,12 @@ class _LoginScreenState extends State<LoginScreen> {
     isSignedIn();
   }
 
+  @override
+  void dispose() {
+    dsPrint('dispose');
+    super.dispose();
+  }
+
   void isSignedIn() async {
     this.setState(() {
       isLoading = true;
@@ -70,15 +76,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> handleSignIn(SignInWith signInWith) async {
     dsPrint('handleSignIn signInWith $signInWith');
-    prefs = await SharedPreferences.getInstance();
 
     this.setState(() {
       isLoading = true;
     });
 
+    prefs = await SharedPreferences.getInstance();
+
     firebaseAuth.authStateChanges().listen((User user) async {
       if (user != null) {
-        dsPrint('User is signed in!');
+        dsPrint('authStateChanges().listen/User is signed in!');
         dsPrint(user.toString());
         final QuerySnapshot result = await FirebaseFirestore.instance
             .collection('users')
@@ -104,10 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
           await prefs.setString('photoUrl', documents[0].data()['photoUrl']);
           await prefs.setString('aboutMe', documents[0].data()['aboutMe']);
         }
-        Fluttertoast.showToast(msg: "Sign in success");
-        this.setState(() {
-          isLoading = false;
-        });
+        // Fluttertoast.showToast(msg: "Sign in success");
 
         Navigator.push(
           context,
@@ -118,19 +122,16 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       } else {
-        dsPrint('User is currently signed out!');
+        dsPrint('authStateChanges().listen/User is currently signed out!');
         // Fluttertoast.showToast(msg: "Sign in fail");
-        this.setState(() {
-          isLoading = false;
-        });
       }
     });
 
     firebaseAuth.idTokenChanges().listen((User user) {
       if (user == null) {
-        dsPrint('User token refreshed / user is null');
+        dsPrint('idTokenChanges().listen/Token changed/User is null');
       } else {
-        dsPrint('User token refreshed');
+        dsPrint('idTokenChanges().listen/Token changed');
       }
     });
 
@@ -169,7 +170,6 @@ class _LoginScreenState extends State<LoginScreen> {
         break;
       case SignInWith.anonymous:
         {
-          testPrint();
           try {
             UserCredential userCredential =
                 await firebaseAuth.signInAnonymously();
@@ -183,6 +183,9 @@ class _LoginScreenState extends State<LoginScreen> {
         {}
         break;
     }
+    this.setState(() {
+      isLoading = false;
+    });
   }
 
   @override
