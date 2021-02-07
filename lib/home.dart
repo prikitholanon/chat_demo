@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:chat_demo/chat.dart';
 import 'package:chat_demo/const.dart';
 import 'package:chat_demo/main.dart';
 import 'package:chat_demo/utils.dart';
@@ -88,15 +89,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void showNotification(message) async {
     var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
       Platform.isAndroid
-          ? 'com.dfa.flutterchatdemo'
-          : 'com.duytq.flutterchatdemo',
-      'Flutter chat demo',
-      'your channel description',
+          ? 'com.priki.chat_demo'
+          : 'com.priki.chat_demo_isNotAndroid',
+      'chat_demo',
+      "chat_demo's channel",
       playSound: true,
-      enableVibration: true,
+      // enableVibration: true,
       importance: Importance.max,
       priority: Priority.high,
-      icon: "mipmap/launcher_icon",
     );
     var iOSPlatformChannelSpecifics = new IOSNotificationDetails();
     var platformChannelSpecifics = new NotificationDetails(
@@ -383,7 +383,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         alignment: Alignment.centerLeft,
                         margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 0.0),
-                      )
+                      ),
+                      Container(
+                        child: Text(
+                          'ID: ${document.data()['id'] ?? 'Not available'}',
+                          style: TextStyle(color: primaryColor),
+                        ),
+                        alignment: Alignment.centerLeft,
+                        margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 0.0),
+                      ),
                     ],
                   ),
                   margin: EdgeInsets.only(left: 20.0),
@@ -393,13 +401,15 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           onPressed: () {
             dsPrint('open chat');
-            // Navigator.push(
-            //     context,
-            //     MaterialPageRoute(
-            //         builder: (context) => Chat(
-            //               peerId: document.id,
-            //               peerAvatar: document.data()['photoUrl'],
-            //             )));
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChatScreen(
+                  peerId: document.id,
+                  peerAvatar: document.data()['photoUrl'],
+                ),
+              ),
+            );
           },
           color: greyColor2,
           padding: EdgeInsets.fromLTRB(25.0, 10.0, 25.0, 10.0),
