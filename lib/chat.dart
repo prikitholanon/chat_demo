@@ -20,6 +20,10 @@ class ChatScreen extends StatefulWidget {
   ChatScreen({Key key, @required this.peerId, @required this.peerAvatar})
       : super(key: key);
 
+  String getAvatarUrl() {
+    return peerAvatar ?? 'https://cdn.discordapp.com/attachments/805258584375296043/808282431761023046/6874741.JPG';
+  }
+
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
@@ -59,6 +63,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   readLocal() async {
+    dsPrint('run');
     prefs = await SharedPreferences.getInstance();
     id = prefs.getString('id') ?? '';
     if (id.hashCode <= widget.peerId.hashCode) {
@@ -66,6 +71,7 @@ class _ChatScreenState extends State<ChatScreen> {
     } else {
       groupChatId = '${widget.peerId}-$id';
     }
+    dsPrint('run/$id/$groupChatId');
     FirebaseFirestore.instance
         .collection('users')
         .doc(id)
@@ -84,6 +90,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void onScrollListener() {
+    dsPrint('$onScrollListener');
     if (listScrollController.offset >=
             listScrollController.position.maxScrollExtent &&
         !listScrollController.position.outOfRange) {
@@ -139,7 +146,7 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'CHAT',
+          'CHATxxx',
           style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -179,9 +186,10 @@ class _ChatScreenState extends State<ChatScreen> {
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return Center(
-                      child: CircularProgressIndicator(
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(themeColor)));
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(themeColor),
+                    ),
+                  );
                 } else {
                   listMessage.addAll(snapshot.data.docs);
                   return ListView.builder(
@@ -199,7 +207,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget buildItem(int index, DocumentSnapshot document) {
-    dsPrint('');
+    dsPrint('run/$index/${document.data()['idFrom']}');
     if (document.data()['idFrom'] == id) {
       // Right (my message)
       return Row(
@@ -309,7 +317,8 @@ class _ChatScreenState extends State<ChatScreen> {
                             height: 35.0,
                             padding: EdgeInsets.all(10.0),
                           ),
-                          imageUrl: widget.peerAvatar,
+                          // imageUrl: widget.peerAvatar,
+                          imageUrl: widget.getAvatarUrl(),
                           width: 35.0,
                           height: 35.0,
                           fit: BoxFit.cover,
@@ -435,12 +444,15 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   bool isLastMessageLeft(int index) {
+    dsPrint('$index / ${listMessage[index].data()['idFrom']} / $id');
     if ((index > 0 &&
             listMessage != null &&
             listMessage[index - 1].data()['idFrom'] == id) ||
         index == 0) {
+      dsPrint('isLastMessageLeft => true');
       return true;
     } else {
+      dsPrint('isLastMessageLeft => false');
       return false;
     }
   }
@@ -698,6 +710,4 @@ class _ChatScreenState extends State<ChatScreen> {
       isShowSticker = !isShowSticker;
     });
   }
-
-
 }
